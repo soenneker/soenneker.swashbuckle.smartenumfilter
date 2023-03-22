@@ -3,7 +3,7 @@
 [![](https://img.shields.io/nuget/dt/Soenneker.Swashbuckle.SmartEnumFilter.svg?style=for-the-badge)](https://www.nuget.org/packages/Soenneker.Swashbuckle.SmartEnumFilter/)
 
 # ![](https://user-images.githubusercontent.com/4441470/224455560-91ed3ee7-f510-4041-a8d2-3fc093025112.png) Soenneker.Swashbuckle.SmartEnumFilter
-### A Swashbuckle filter for SmartEnum
+### A Swashbuckle Schema filter for SmartEnum
 
 ## Installation
 
