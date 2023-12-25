@@ -8,5 +8,5 @@
 ## Installation
 
 ```
-Install-Package Soenneker.Swashbuckle.SmartEnumFilter
+dotnet add package Soenneker.Swashbuckle.SmartEnumFilter
 ```
