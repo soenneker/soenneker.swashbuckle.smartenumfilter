@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\src\Soenneker.Swashbuckle.SmartEnumFilter.csproj" />
+      <ProjectReference Include="..\..\src\Soenneker.Swashbuckle.SmartEnumFilter.csproj" />
     </ItemGroup>
 
 </Project>
