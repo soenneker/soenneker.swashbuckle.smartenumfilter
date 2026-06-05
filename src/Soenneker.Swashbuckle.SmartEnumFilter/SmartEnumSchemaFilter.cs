@@ -14,6 +14,11 @@ namespace Soenneker.Swashbuckle.SmartEnumFilter;
 /// </summary>
 public sealed class SmartEnumSchemaFilter : ISchemaFilter
 {
+    /// <summary>
+    /// Executes the apply operation.
+    /// </summary>
+    /// <param name="schema">The schema.</param>
+    /// <param name="context">The context.</param>
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
         if (schema is not OpenApiSchema mutator)
