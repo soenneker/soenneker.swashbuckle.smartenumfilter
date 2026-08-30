@@ -15,10 +15,10 @@ namespace Soenneker.Swashbuckle.SmartEnumFilter;
 public sealed class SmartEnumSchemaFilter : ISchemaFilter
 {
     /// <summary>
-    /// Applies smart Enum Schema Filter for the Smart Enum Schema Filter.
+    /// Replaces a SmartEnum object schema with its declared string values.
     /// </summary>
     /// <param name="schema">Schema to read or generate.</param>
-    /// <param name="context">HTTP context containing the Authorization header.</param>
+    /// <param name="context">Context for the schema being generated.</param>
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
         if (schema is not OpenApiSchema mutator)
@@ -31,8 +31,11 @@ public sealed class SmartEnumSchemaFilter : ISchemaFilter
             return;
         }
 
-        IEnumerable<string>? enumValues = type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy)
-                                              .Select(d => d.Name);
+        IEnumerable<string> enumValues = type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy)
+                                             .Where(field => field.FieldType == type)
+                                             .Select(field => field.GetValue(null)?.ToString())
+                                             .Where(value => value is not null)
+                                             .Select(value => value!);
 
         var openApiValues = new List<JsonNode>();
         openApiValues.AddRange(enumValues.Select(d => JsonValue.Create(d)));

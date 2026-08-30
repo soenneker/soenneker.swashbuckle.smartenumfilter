@@ -5,14 +5,48 @@
 
 # Soenneker.Swashbuckle.SmartEnumFilter
 
-A Swashbuckle Schema filter for SmartEnum.
+Generates string-enum OpenAPI schemas for Ardalis SmartEnum types.
 
-## Install
+## Installation
 
 ```bash
 dotnet add package Soenneker.Swashbuckle.SmartEnumFilter
 ```
 
-## What you get
+## Registration
 
-- `SmartEnumSchemaFilter` — A Swashbuckle Schema filter for SmartEnum.
+```csharp
+using Soenneker.Swashbuckle.SmartEnumFilter;
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SchemaFilter<SmartEnumSchemaFilter>();
+});
+```
+
+## Example
+
+```csharp
+using Ardalis.SmartEnum;
+
+public sealed class OrderStatus : SmartEnum<OrderStatus>
+{
+    public static readonly OrderStatus InProgress = new("in-progress", 1);
+    public static readonly OrderStatus Complete = new("complete", 2);
+
+    private OrderStatus(string name, int value) : base(name, value)
+    {
+    }
+}
+```
+
+The generated schema uses the SmartEnum names, not the C# field identifiers or integer values:
+
+```yaml
+type: string
+enum:
+  - in-progress
+  - complete
+```
+
+Only public static fields whose type exactly matches the SmartEnum type are included. The filter replaces the object-shaped schema properties but does not configure runtime serialization. Ensure the application's SmartEnum JSON converter emits the same names described by the OpenAPI document.
