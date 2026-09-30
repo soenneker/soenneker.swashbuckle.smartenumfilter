@@ -30,7 +30,7 @@ public class SmartEnumSchemaFilterTests : HostedUnitTest
     }
 
     [Test]
-    public async Task Apply_should_use_smart_enum_names_instead_of_field_names()
+    public async ValueTask Apply_should_use_smart_enum_names_instead_of_field_names()
     {
         var filter = new SmartEnumSchemaFilter();
         var schema = new OpenApiSchema();
