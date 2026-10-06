@@ -1,49 +1,49 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json.Nodes;
-using Ardalis.SmartEnum;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Soenneker.Swashbuckle.SmartEnumFilter;
 
-/// <summary>
-/// A Swashbuckle Schema filter for SmartEnum
-/// </summary>
+/// <summary>Maps enum-like model types to their string values in OpenAPI schemas.</summary>
 public sealed class SmartEnumSchemaFilter : ISchemaFilter
 {
-    /// <summary>
-    /// Replaces a SmartEnum object schema with its declared string values.
-    /// </summary>
-    /// <param name="schema">Schema to read or generate.</param>
-    /// <param name="context">Context for the schema being generated.</param>
+    private readonly Func<Type, IReadOnlyList<string>?> _values;
+
+    /// <summary>Discovers enum fields at runtime. Use explicit value registrations when trimming.</summary>
+    [RequiresUnreferencedCode("Runtime schema discovery requires preserved enum fields. Supply an explicit type-to-values map.")]
+    public SmartEnumSchemaFilter() => _values = Discover;
+
+    /// <summary>Uses statically registered schema values without reflection.</summary>
+    public SmartEnumSchemaFilter(IReadOnlyDictionary<Type, IReadOnlyList<string>> values)
+    {
+        ArgumentNullException.ThrowIfNull(values);
+        var snapshot = values.ToDictionary(pair => pair.Key, pair => (IReadOnlyList<string>)pair.Value.ToArray());
+        _values = type => snapshot.TryGetValue(type, out var result) ? result : null;
+    }
+
     public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        if (schema is not OpenApiSchema mutator)
+        if (schema is not OpenApiSchema mutable || _values(context.Type) is not { } values)
             return;
+        mutable.Type = JsonSchemaType.String;
+        mutable.Enum = values.Select(value => (JsonNode)JsonValue.Create(value)!).ToList();
+        mutable.Properties = null;
+    }
 
-        Type? type = context.Type;
-
-        if (!IsTypeDerivedFromGenericType(type, typeof(SmartEnum<>)) && !IsTypeDerivedFromGenericType(type, typeof(SmartEnum<,>)))
-        {
-            return;
-        }
-
-        IEnumerable<string> enumValues = type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.FlattenHierarchy)
-                                             .Where(field => field.FieldType == type)
-                                             .Select(field => field.GetValue(null)?.ToString())
-                                             .Where(value => value is not null)
-                                             .Select(value => value!);
-
-        var openApiValues = new List<JsonNode>();
-        openApiValues.AddRange(enumValues.Select(d => JsonValue.Create(d)));
-
-        // See https://swagger.io/docs/specification/data-models/enums/
-        mutator.Type = JsonSchemaType.String;
-        mutator.Enum = openApiValues;
-        mutator.Properties = null;
+    [RequiresUnreferencedCode("Runtime schema discovery requires preserved enum fields.")]
+    private static IReadOnlyList<string>? Discover(Type type)
+    {
+        if (!IsTypeDerivedFromGenericType(type, typeof(Ardalis.SmartEnum.SmartEnum<>)) && !IsTypeDerivedFromGenericType(type, typeof(Ardalis.SmartEnum.SmartEnum<,>)))
+            return null;
+        return type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+            .Where(field => field.FieldType == type)
+            .Select(field => field.GetValue(null)?.ToString())
+            .Where(value => value is not null).Select(value => value!).ToArray();
     }
 
     private static bool IsTypeDerivedFromGenericType(Type? typeToCheck, Type genericType)
