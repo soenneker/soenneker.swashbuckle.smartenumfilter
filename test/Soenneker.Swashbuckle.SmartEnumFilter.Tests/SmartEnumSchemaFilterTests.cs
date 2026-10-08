@@ -3,6 +3,7 @@ using Microsoft.OpenApi;
 using Soenneker.Tests.HostedUnit;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Soenneker.Swashbuckle.SmartEnumFilter.Tests;
 
@@ -30,7 +31,7 @@ public class SmartEnumSchemaFilterTests : HostedUnitTest
     }
 
     [Test]
-    public async ValueTask Apply_should_use_smart_enum_names_instead_of_field_names()
+    public async ValueTask Apply_should_use_smart_enum_names_instead_of_field_names(CancellationToken cancellationToken)
     {
         var filter = new SmartEnumSchemaFilter();
         var schema = new OpenApiSchema();
